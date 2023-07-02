@@ -1,0 +1,8 @@
+- input bundle of addresses
+    - saved/restored from local storage
+- fetch transactions for all
+    - on mainnet, optimism, arbitrum
+- display transactions in table
+    - gas fee in dollar
+    - short summary if eth/erc-20/nft transfer(?)
+    - table -> clickable block number -> block details
