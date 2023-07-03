@@ -8,13 +8,13 @@ const validateAddress = async (address, provider) => {
       // Use ethers.js to resolve the ENS name to an address
       const resolvedAddress = await provider.resolveName(address);
       if (resolvedAddress) {
-        return resolvedAddress;
+        return {address: resolvedAddress, ensName: address};
       } else {
         throw new Error('ENS name could not be resolved');
       }
     } else {
       // If it's not an ENS name, normalize and validate it as an Ethereum address
-      return getAddress(address);
+      return {address: getAddress(address)};
     }
   } catch {
     return false;
@@ -22,18 +22,26 @@ const validateAddress = async (address, provider) => {
 };
 
 
-const processAddress = async (address, setAddressBundle, provider) => {
-  address = await validateAddress(address, provider);
-  if (!address) {
+const processAddress = async (address, setAddressBundle, ensMapping, setEnsMapping, provider) => {
+  let validatedAddress = await validateAddress(address, provider);
+  if (!validateAddress) {
     alert('Invalid Ethereum address');
     return;
   }
 
+  // TODO!: should be from state, not localStorage, right?
   const addressBundle = JSON.parse(localStorage.getItem('addressBundle')) || [];
-  addressBundle.push(address);
+  addressBundle.push(validatedAddress.address);
 
   localStorage.setItem('addressBundle', JSON.stringify(addressBundle));
   setAddressBundle(addressBundle);
+
+  if (validatedAddress.ensName) {
+    const newEnsMapping = {...ensMapping};
+    newEnsMapping[validatedAddress.address] = validatedAddress.ensName;
+    localStorage.setItem('ensMapping', JSON.stringify(newEnsMapping));
+    setEnsMapping(newEnsMapping);
+  }
 
   const url = new URL(window.location);
   url.searchParams.set('addresses', addressBundle.join(','));
@@ -47,19 +55,26 @@ const EthereumAddressInput = ({ alchemy }) => {
     return storedBundle ? JSON.parse(storedBundle) : [];
   });
 
+  const [ensMapping, setEnsMapping] = useState(() => {
+    const storedMapping = localStorage.getItem('ensMapping');
+    return storedMapping ? JSON.parse(storedMapping) : {};
+  });
+
   const handleInputChange = (event) => {
     setAddress(event.target.value);
   };
 
   const handleInputEnter = async (event) => {
     if(event.key === 'Enter') {
-      processAddress(address, setAddressBundle, await alchemy.config.getProvider());
+      processAddress(address, setAddressBundle, ensMapping, setEnsMapping,
+        await alchemy.config.getProvider());
       setAddress('');
     }
   };
 
   const handleButtonClick = async () => {
-    processAddress(address, setAddressBundle, await alchemy.config.getProvider());
+    processAddress(address, setAddressBundle, ensMapping, setEnsMapping,
+      await alchemy.config.getProvider());
     setAddress('');
   };
 
@@ -75,6 +90,7 @@ const EthereumAddressInput = ({ alchemy }) => {
         type="text"
         placeholder="Enter Ethereum address or ENS name"
         value={address}
+        size="50"
         onChange={handleInputChange}
         onKeyPress={handleInputEnter}
       />
