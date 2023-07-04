@@ -1,25 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const TransactionHistory = ({ addressBundle, ensMapping, alchemy }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [transactions, setTransactions] = useState({});
+  const transactionsRef = useRef({});
 
   useEffect(() => {
     setLoading(true);
     setError(null);
 
     const fetchTransactions = async () => {
-      const newTransactions = { ...transactions };
-
       for (const address of addressBundle) {
-        if (!newTransactions[address]) {
+        if (!transactionsRef.current[address]) {
           try {
-            newTransactions[address] = await alchemy.core.getAssetTransfers({
-              fromBlock: "0x0",
-              fromAddress: address,
-              category: ["external", "internal", "erc20", "erc721", "erc1155"],
-            });
+            transactionsRef.current[address] =
+              await alchemy.core.getAssetTransfers({
+                fromBlock: "0x0",
+                fromAddress: address,
+                category: [
+                  "external",
+                  "internal",
+                  "erc20",
+                  "erc721",
+                  "erc1155",
+                ],
+              });
           } catch (err) {
             setError(err.message);
             setLoading(false);
@@ -28,10 +33,6 @@ const TransactionHistory = ({ addressBundle, ensMapping, alchemy }) => {
         }
       }
 
-      setTransactions((prevTransactions) => ({
-        ...prevTransactions,
-        ...newTransactions,
-      }));
       setLoading(false);
     };
 
@@ -56,7 +57,9 @@ const TransactionHistory = ({ addressBundle, ensMapping, alchemy }) => {
             <td>{address}</td>
             <td>{ensMapping[address] || "N/A"}</td>
             <td>
-              {transactions[address] ? transactions[address].length : "N/A"}
+              {transactionsRef.current[address]
+                ? transactionsRef.current[address].transfers.length
+                : "N/A"}
             </td>
           </tr>
         ))}
