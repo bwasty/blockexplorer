@@ -1,8 +1,10 @@
-import { Alchemy, Network } from 'alchemy-sdk';
-import { useEffect, useState } from 'react';
+import { Alchemy, Network } from "alchemy-sdk";
+import { useState } from "react";
 
-import './App.css';
-import EthereumAddressInput from './EthereumAddressInput';
+import "./App.css";
+import EthereumAddressInput from "./EthereumAddressInput";
+import BlockHashInput from "./BlockHashInput";
+import BlockDataDisplay from "./BlockDataDisplay";
 
 // Refer to the README doc for more information about using API
 // keys in client-side code. You should never do this in production
@@ -12,7 +14,6 @@ const settings = {
   network: Network.ETH_MAINNET,
 };
 
-
 // In this week's lessons we used ethers.js. Here we are using the
 // Alchemy SDK is an umbrella library with several different packages.
 //
@@ -21,20 +22,34 @@ const settings = {
 const alchemy = new Alchemy(settings);
 
 function App() {
-  const [blockNumber, setBlockNumber] = useState();
+  // const [blockNumber, setBlockNumber] = useState();
 
-  useEffect(() => {
-    async function getBlockNumber() {
-      setBlockNumber(await alchemy.core.getBlockNumber());
-    }
+  // useEffect(() => {
+  //   async function getBlockNumber() {
+  //     setBlockNumber(await alchemy.core.getBlockNumber());
+  //   }
 
-    getBlockNumber();
-  });
+  //   getBlockNumber();
+  // });
 
-  return <div>
-    <div className="App">Block Number: {blockNumber}</div>
-    <EthereumAddressInput alchemy={alchemy}></EthereumAddressInput>
-  </div>;
+  const [blockData, setBlockData] = useState(null);
+
+  const fetchBlockData = async (blockHash) => {
+    const block = await alchemy.core.getBlockWithTransactions(blockHash);
+    setBlockData(block);
+  };
+
+  return (
+    <>
+      <div>
+        <BlockHashInput onFetchBlock={fetchBlockData} />
+        <BlockDataDisplay blockData={blockData} />
+      </div>
+      <div>
+        <EthereumAddressInput alchemy={alchemy}></EthereumAddressInput>
+      </div>
+    </>
+  );
 }
 
 export default App;
