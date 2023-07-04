@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getAddress } from "ethers";
+import EthereumAddressList from "./EthereumAddressList";
 
 const validateAddress = async (address, provider) => {
   try {
@@ -99,6 +100,14 @@ const EthereumAddressInput = ({ alchemy }) => {
     window.history.pushState({}, "", url);
   }, [addressBundle]);
 
+  const handleDelete = (addressToDelete) => {
+    const newAddressBundle = addressBundle.filter(
+      (address) => address !== addressToDelete
+    );
+    localStorage.setItem("addressBundle", JSON.stringify(newAddressBundle));
+    setAddressBundle(newAddressBundle);
+  };
+
   return (
     <div>
       <input
@@ -110,6 +119,11 @@ const EthereumAddressInput = ({ alchemy }) => {
         onKeyPress={handleInputEnter}
       />
       <button onClick={handleButtonClick}>+</button>
+      <EthereumAddressList
+        addressBundle={addressBundle}
+        ensMapping={ensMapping}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };
