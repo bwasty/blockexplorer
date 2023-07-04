@@ -16,7 +16,9 @@ const TransactionHistory = ({ addressBundle, ensMapping, alchemy }) => {
         if (!newTransactions[address]) {
           try {
             newTransactions[address] = await alchemy.core.getAssetTransfers({
+              fromBlock: "0x0",
               fromAddress: address,
+              category: ["external", "internal", "erc20", "erc721", "erc1155"],
             });
           } catch (err) {
             setError(err.message);
@@ -26,12 +28,15 @@ const TransactionHistory = ({ addressBundle, ensMapping, alchemy }) => {
         }
       }
 
-      setTransactions(newTransactions);
+      setTransactions((prevTransactions) => ({
+        ...prevTransactions,
+        ...newTransactions,
+      }));
       setLoading(false);
     };
 
     fetchTransactions();
-  }, [addressBundle, alchemy, transactions]);
+  }, [addressBundle, alchemy.core]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;

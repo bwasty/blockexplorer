@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getAddress } from "ethers";
 import EthereumAddressList from "./EthereumAddressList";
+import TransactionHistory from "./TransactionHistory";
 
 const validateAddress = async (address, provider) => {
   try {
@@ -123,6 +124,11 @@ const EthereumAddressInput = ({ alchemy }) => {
         addressBundle={addressBundle}
         ensMapping={ensMapping}
         onDelete={handleDelete}
+      />
+      <TransactionHistory
+        addressBundle={addressBundle}
+        ensMapping={ensMapping}
+        alchemy={alchemy}
       />
     </div>
   );

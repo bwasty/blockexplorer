@@ -9,7 +9,7 @@ const EthereumAddressList = ({ addressBundle, ensMapping, onDelete }) => {
           {ensMapping[address] && ` (${ensMapping[address]})`}
           <button
             onClick={() => onDelete(address)}
-            style={{ "margin-left": "10px" }}
+            style={{ marginLeft: "10px" }}
           >
             x
           </button>
